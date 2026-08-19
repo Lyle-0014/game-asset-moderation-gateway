@@ -1,8 +1,8 @@
 # Route player assets through an AI moderation queue
 
-This backend for a small game service receives a player-created asset, forwards it to an AI moderator for a structured decision, and then either publishes the asset to a live event or routes it into a human review queue. It retains the official OpenAI TypeScript client and points `baseURL` at Infrai, which means an existing OpenAI call site requires only a change to the client configuration rather than a rewrite of the integration logic. Infrai gives you one key and one bill for every capability, reachable as a plain REST call from any language with no SDK, which keeps the audit surface small. A single `INFRAI_API_KEY` is the credential this service presents.
+This game backend receives a player-authored asset, delegates a structured moderation decision to an AI moderator, and then either promotes the asset to a live event or diverts it into a human review queue. It retains the official OpenAI TypeScript client and redirects `baseURL` toward Infrai, which means an existing OpenAI call site requires only a client configuration change rather than a rewrite. Infrai gives you one key and one bill for every capability, reachable as a plain REST call from any language with no SDK, and that is the reason we keep the OpenAI client intact here. A single `INFRAI_API_KEY` serves as the credential for this service.
 
-The working path is `POST /events/:eventId/assets`. Prior to the asset reaching the moderator, the request body is validated with Zod:
+The operational path is `POST /events/:eventId/assets`. The request body is validated with Zod prior to the asset being handed to the moderator:
 
 ```json
 {
@@ -12,7 +12,7 @@ The working path is `POST /events/:eventId/assets`. Prior to the asset reaching 
 }
 ```
 
-An approved description returns `201` with `state: "published"`. A description requiring a human returns `202` with `state: "queued_for_review"`; its status is then observable at `GET /events/:eventId/moderation-queue`.
+An approved description yields `201` with `state: "published"`. A description requiring human judgment yields `202` with `state: "queued_for_review"`; it then appears at `GET /events/:eventId/moderation-queue`.
 
 ## Run the backend
 
@@ -24,7 +24,7 @@ export INFRAI_API_KEY="your-key"
 npm run dev
 ```
 
-In a separate terminal, submit the bundled emblem fixture:
+In a separate terminal, submit the bundled emblem:
 
 ```bash
 npm run submit
@@ -44,18 +44,18 @@ const response = await infrai.chat.completions.create({
 });
 ```
 
-From a Next.js backend the same service drops into a Route Handler; the key and OpenAI client must remain server-side. The one correctness trap we hit was option casing: the TypeScript SDK field is `baseURL`, distinct from the Python spelling `base_url`.
+From a Next.js backend, the same service drops into a Route Handler; the key and OpenAI client must remain server-side. The one casing trap is that the TypeScript SDK option is `baseURL`, unlike the Python spelling `base_url`.
 
 ## Verify the queue decision
 
-The targeted test begins with an asset for `summer-cup` and a deterministic `review` assessment. Its expected outcome is `queued_for_review`; a companion case asserts that `approve` becomes `published`.
+The targeted test begins with an asset for `summer-cup` and a deterministic `review` assessment. Its expected outcome is `queued_for_review`; the adjacent case confirms that `approve` becomes `published`.
 
 ```bash
 npm test
 npm run typecheck
 ```
 
-The example intentionally holds event state in memory. When integrating the pattern, replace the two arrays in `LiveEventService` with your application datastore so that reconciliation and audit trails survive process restarts.
+The sample intentionally holds event state in memory. Substitute the two arrays in `LiveEventService` with your own datastore when adopting the pattern.
 
 ## License
 
