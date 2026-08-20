@@ -4,9 +4,8 @@ const response = await fetch("http://localhost:3000/events/summer-cup/assets", {
   body: JSON.stringify({
     playerId: "player-42",
     kind: "emblem",
-    description: "A smiling sun above a pixel-art mountain"
+    description: "A bright arena banner"
   })
 });
-
-const result: unknown = await response.json();
-console.log(JSON.stringify(result, null, 2));
+console.log(JSON.stringify(await response.json(), null, 2));
+export {};

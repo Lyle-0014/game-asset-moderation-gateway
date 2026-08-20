@@ -36,7 +36,7 @@ export function createAssetModerator(apiKey: string): AssetModerator {
 
       const content = response.choices[0]?.message.content;
       if (!content) throw new Error("The moderation response was empty");
-      return assessmentSchema.parse(JSON.parse(content));
+      return assessmentSchema.parse(JSON.parse(content)) as ModerationAssessment;
     }
   };
 }
